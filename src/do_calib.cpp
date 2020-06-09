@@ -48,7 +48,7 @@ DoCalib::DoCalib() :
   state_(START)
 {
   ros::NodeHandle nh;
-  imu_sub_ = nh.subscribe("imu", 1, &DoCalib::imuCallback, this);
+  imu_sub_ = nh.subscribe("raw_imu", 1, &DoCalib::imuCallback, this);
 
   ros::NodeHandle nh_private("~");
   nh_private.param<int>("measurements", measurements_per_orientation_, 500);
@@ -62,12 +62,12 @@ DoCalib::DoCalib() :
   orientations_.push(AccelCalib::ZPOS);
   orientations_.push(AccelCalib::ZNEG);
 
-  orientation_labels_[AccelCalib::XPOS] = "X+";
-  orientation_labels_[AccelCalib::XNEG] = "X-";
-  orientation_labels_[AccelCalib::YPOS] = "Y+";
-  orientation_labels_[AccelCalib::YNEG] = "Y-";
-  orientation_labels_[AccelCalib::ZPOS] = "Z+";
-  orientation_labels_[AccelCalib::ZNEG] = "Z-";
+  orientation_labels_[AccelCalib::XPOS] = "X+ axis - Front side of the robot";
+  orientation_labels_[AccelCalib::XNEG] = "X- axis - Rear side of the robot" ;
+  orientation_labels_[AccelCalib::YPOS] = "Y+ axis - Left side of the robot";
+  orientation_labels_[AccelCalib::YNEG] = "Y- axis - Right side of the robot";
+  orientation_labels_[AccelCalib::ZPOS] = "Z+ axis - Top side of the robot";
+  orientation_labels_[AccelCalib::ZNEG] = "Z- axis - Bottom side of the robot";
 }
 
 bool DoCalib::running()
@@ -75,7 +75,7 @@ bool DoCalib::running()
   return state_ != DONE;
 }
 
-void DoCalib::imuCallback(sensor_msgs::Imu::ConstPtr imu)
+void DoCalib::imuCallback(lino_msgs::Imu::ConstPtr imu)
 {
   bool accepted;
 
@@ -99,9 +99,9 @@ void DoCalib::imuCallback(sensor_msgs::Imu::ConstPtr imu)
       orientations_.pop();
       measurements_received_ = 0;
 
-      std::cout << "Orient IMU with " << orientation_labels_[current_orientation_] << " axis up and press Enter";
-      std::cin.get();
-      std::cout << "Recording measurements...";
+      std::cout << "Orient IMU with " << orientation_labels_[current_orientation_] << " facing up. Press [ENTER] once done.";
+      std::cin.ignore();
+      std::cout << "Calibrating! This may take a while...." << std::endl;
 
       state_ = RECEIVING;
     }
